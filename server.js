@@ -1,4 +1,14 @@
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
 const cheerio = require("cheerio");
+
+const app = express();
+app.use(cors());
+
+app.get("/", (req, res) => {
+    res.send("Server is running ✅");
+});
 
 app.get("/fetch", async (req, res) => {
     const url = req.query.url;
@@ -14,15 +24,11 @@ app.get("/fetch", async (req, res) => {
         let results = [];
 
         $("td").each((i, el) => {
-
             const label = $(el).text().trim();
 
             if (label === "Question ID :") {
-
-                // Get Question ID (next bold cell)
                 const questionID = $(el).next("td.bold").text().trim();
 
-                // Find Chosen Option label in same table
                 const chosenLabel = $(el)
                     .parent()
                     .nextAll()
@@ -42,9 +48,17 @@ app.get("/fetch", async (req, res) => {
             }
         });
 
-        res.json({ total: results.length, data: results });
+        res.json({
+            total: results.length,
+            data: results
+        });
 
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch content" });
     }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
 });
