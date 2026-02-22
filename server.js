@@ -19,39 +19,53 @@ app.get("/fetch", async (req, res) => {
 
     try {
         const response = await axios.get(url);
-        const $ = cheerio.load(response.data);
+const $ = cheerio.load(response.data);
 
-        let results = [];
+let results = [];
 
-        $("td").each((i, el) => {
-            const label = $(el).text().trim();
+$("td").each((i, el) => {
+    const label = $(el).text().trim();
 
-            if (label === "Question ID :") {
-                const questionID = $(el).next("td.bold").text().trim();
+    if (label === "Question Type :") {
 
-                const chosenLabel = $(el)
-                    .parent()
-                    .nextAll()
-                    .find("td:contains('Chosen Option :')")
-                    .first();
+        const questionType = $(el).next("td.bold").text().trim();
 
-                let chosenOption = "";
+        // Find Question ID in same table section
+        const questionIDLabel = $(el)
+            .parent()
+            .nextAll()
+            .find("td:contains('Question ID :')")
+            .first();
 
-                if (chosenLabel.length) {
-                    chosenOption = chosenLabel.next("td.bold").text().trim();
-                }
+        let questionID = "";
+        if (questionIDLabel.length) {
+            questionID = questionIDLabel.next("td.bold").text().trim();
+        }
 
-                results.push({
-                    questionID,
-                    chosenOption
-                });
-            }
+        // Find Chosen Option
+        const chosenLabel = $(el)
+            .parent()
+            .nextAll()
+            .find("td:contains('Chosen Option :')")
+            .first();
+
+        let chosenOption = "";
+        if (chosenLabel.length) {
+            chosenOption = chosenLabel.next("td.bold").text().trim();
+        }
+
+        results.push({
+            questionType,
+            questionID,
+            chosenOption
         });
+    }
+});
 
-        res.json({
-            total: results.length,
-            data: results
-        });
+res.json({
+    total: results.length,
+    data: results
+});
 
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch content" });
